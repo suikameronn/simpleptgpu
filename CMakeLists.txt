@@ -5,7 +5,7 @@ project( simpleptgpu CUDA )
 
 set( CMAKE_CUDA_STANDARD 14 )
 
-include_directories( /usr/local/cuda-11.0/samples/common/inc/ )
+include_directories( C:/Users/sukai/source/repos/cuda-samples/Common/ )
 add_executable( simpleptgpu main.cu ray.hpp scene.hpp sphere.hpp intersection.hpp )
 
 set_target_properties(
@@ -15,7 +15,7 @@ set_target_properties(
 
 #
 project( simplertaa CUDA )
-include_directories( /usr/local/cuda-11.0/samples/common/inc/ )
+include_directories( C:/Users/sukai/source/repos/cuda-samples/Common/ )
 add_executable( simplertaa rtaa.cu ray.hpp scene.hpp sphere.hpp intersection.hpp )
 
 set_target_properties(

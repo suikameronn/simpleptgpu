@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef _INTERSECTION_HPP_
-#define _INTERSECTION_HPP_
-
 #include<cuda.h>
-#include<helper_cuda.h>
-#include<helper_math.h>
+#include<C:/Users/sukai/source/repos/cuda-samples/Common/helper_cuda.h>
+#include<C:/Users/sukai/source/repos/cuda-samples/Common/helper_math.h>
 
 struct intersection
 {
@@ -13,5 +10,3 @@ struct intersection
 	float3	m_n;
 	float4	m_c;
 };
-
-#endif

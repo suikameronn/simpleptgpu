@@ -11,6 +11,8 @@
 #include"scene.hpp"
 #include"image.hpp"
 
+ #include "device_launch_parameters.h"
+
 constexpr float pi = 3.14159265f;
 constexpr float two_pi = 2.f * pi;
 constexpr float inv_pi = 0.318309886f;
@@ -137,7 +139,7 @@ int main( int argc, char** argv )
 	//
 	checkCudaErrors( cudaMalloc( ( void** ) &device_rand_state, sizeof( curandState ) * width * height ) );
 
-	//„Ç∑„Éº„É≥„ÅÆ‰ΩúÊàê
+	//ÉVÅ[ÉìÇÃçÏê¨
 	{
 		checkCudaErrors( cudaMalloc( ( void ** ) &device_spheres, n_object * sizeof( sphere * ) ) );
 		checkCudaErrors( cudaMalloc( ( void ** ) &device_scene  , 1 * sizeof( scene *  ) ) );

@@ -6,6 +6,8 @@
 #include<curand.h>
 #include<curand_kernel.h>
 
+#include "device_launch_parameters.h"
+
 #include"ray.hpp"
 #include"sphere.hpp"
 #include"scene.hpp"
@@ -97,30 +99,61 @@ __global__ void trace( float *pixels, scene **scene, const int width, const int 
 
 
 
-//
+///
+/*
+pixels ‚ÍAŠe‰æ‘f‚Ì’l‚ðŠi”[‚·‚éƒoƒbƒtƒ@‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ÅAæ’öà–¾‚µ‚½ device_buffer ‚ð“n‚µ‚Ü‚·B
+scene ‚ÍA‹…‚Å\¬‚³‚ê‚½ƒV[ƒ“‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ð•\‚µ‚Ü‚·B
+rand_state ‚ÍA—”¶¬—p‚Ìó‘Ô‚ðŠi”[‚µ‚½”z—ñ‚Ö‚Ìƒ|ƒCƒ“ƒ^
+eye ‚ÍŽ‹“_‚Ì3ŽŸŒ³À•W
+ns ‚Í1‰æ‘f‚ ‚½‚è‚ÌƒŒƒC‚ÌƒTƒ“ƒvƒ‹”‚ð•\‚µ‚Ü‚·B
+*/
 __global__ void render_aa( float *pixels, scene **scene, curandState *rand_state, const int width, const int height, const float3 eye, const int ns )
 {
+	//ƒOƒŠƒbƒh‘S‘Ì‚Å‚ÌƒXƒŒƒbƒh”Ô†‚ðŒvŽZ
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+	//ƒXƒŒƒbƒh”Ô†‚©‚çA’S“–‚·‚é‰æ‘f‚ðŽw’è‚·‚é
+	//‚»‚ÌÛA’S“–‚·‚é‰æ‘f‚ª–³‚¯‚ê‚Î‰½‚àˆ—‚ð‚µ‚È‚¢
 	if( ( x >= width ) && ( y >= height ) ) return;
 
+	//Œð“_‚Ìî•ñ(À•WA–@üAF)
 	intersection isect;
+
 	float3 d, L;
+	
+	//Žn“_‚Æ’PˆÊ•ûŒü‚ÌƒxƒNƒgƒ‹‚ðŽ‚Â
 	ray r;
+
+	//
 	curandState rng = rand_state[ y * width + x ];
 
+	//1‰æ‘f‚Ì‘å‚«‚³‚ð‹‚ß‚Ä‚¢‚é
 	const float m_p = 2.f * tan( 40.f / 2.f * 3.14159265f / 180.f ) / float( height );
 
 	L = make_float3( 0.f, 0.f, 0.f );
+
+	//ns–{‚ÌƒŒƒC‚ð”ò‚Î‚·
 	for( int i = 0; i < ns; ++i ) {
+
+		//ƒXƒNƒŠ[ƒ“•½–Ê‚Ì’†S‚ðŒ´“_‚Æ‚·‚é
+		//ƒXƒŒƒbƒh”Ô†‚©‚çAƒŒƒC‚ð”ò‚Î‚·‰æ‘f‚ð‘I‘ð‚µA‚»‚ê‚É—”‚ð‰Á‚¦‚é
+		//‚»‚ÌÀ•W‚Ém_p‚ÌÏ‚ð‹‚ßA“Á’è‚Ì‰æ‘f“à‚É•¡”‚ÌƒŒƒC‚ð”ò‚Î‚·‚æ‚¤‚É‚µ‚Ä‚¢‚é
 		d = { m_p * ( x - width / 2.f + curand_uniform( &rng ) ), m_p * ( y - height / 2.f + curand_uniform( &rng ) ), 1.f };
+		
+		//–Ú‚©‚çƒŒƒC‚Ì’PˆÊ•ûŒüƒxƒNƒgƒ‹‚ð‹‚ß‚é
 		r = { eye, normalize( d ) };
+
+		//Œð·”»’è‚ÌŠÖ”
+		//Õ“Ë‚µ‚½ê‡Aisect‚ÉÅ‚à‹ß‚¢Œð“_‚Ìî•ñ‚ª‹L˜^‚³‚ê‚é
 		if( ( *scene )->intersect( r, isect ) ) {
 			L.x += 0.5f * ( isect.m_n.x + 1.f );
 			L.y += 0.5f * ( isect.m_n.y + 1.f );
 			L.z += 0.5f * ( isect.m_n.z + 1.f );
 		}
 	}
+
+	//ƒTƒ“ƒvƒ‹”•ª‚¾‚¯‚Å•½‹Ï‰»‚µ‚Ä‚¢‚é
 	pixels[ 3 * ( y * width + x ) + 0 ] = L.x / float( ns );
 	pixels[ 3 * ( y * width + x ) + 1 ] = L.y / float( ns );
 	pixels[ 3 * ( y * width + x ) + 2 ] = L.z / float( ns );
@@ -140,15 +173,29 @@ __device__ inline float3 Le( const intersection &isect )
 }
 
 // sample direction for diffuse BRDF
+//n::–@ü,xi1,xi2:—”,pdf_w:pdf
 __device__ inline float3 sample( const float3 n, const float xi1, const float xi2, float &pdf_w )
 {
+	//‚±‚±‚Å–@ü‚ðŠî€‚Æ‚µ‚½À•WŒn‚ðì‚Á‚Ä‚¢‚é?
+
+	//‚¨‚»‚ç‚­A•½s‚ÈƒxƒNƒgƒ‹“¯Žm‚ÌŠOÏ‚ð‚Æ‚ç‚È‚¢‚æ‚¤‚É–hŽ~‚µ‚Ä‚¢‚é
 	const float3 t = normalize( ( std::abs( n.x ) > std::abs( n.y ) )? cross( n, make_float3( 0.f, n.z, - n.y ) ) : cross( n, make_float3( - n.z, 0.f, n.x ) ) );
 	const float3 b = cross( t, n );
+	
+	//cos(ƒÆ)
 	const float cth = sqrt( 1.f - xi1 );
+	//sin(ƒÆ)
 	const float sth = sqrt( max( 0.f, 1.f - cth * cth ) );
+
+	//cos(ƒ³)
 	const float cph = cos( two_pi * xi2 );
+	//sin(ƒ³)
 	const float sph = sin( two_pi * xi2 );
+	
+	//cos(ƒÆ)/pi
 	pdf_w = inv_pi * cth;
+	
+	//ÅŒã‚É‹‚ß‚½–@üŠî€ã‚Ì”½ŽËƒxƒNƒgƒ‹‚ðƒ[ƒ‹ƒh‹óŠÔ‚É–ß‚µ‚Ä‚¢‚é
 	return cth * n + sth * cph * t + sth * sph * b;
 }
 
@@ -159,7 +206,7 @@ __device__ inline float3 sample_ggx( const float3 n, const float3 wo, const floa
 	const float3 b = cross( t, n );
 	const float3 lwo = make_float3( dot( wo, t ), dot( wo, b ), dot( wo, n ) );
 
-	//ãƒãƒ¼ãƒ•ãƒ™ã‚¯ãƒˆãƒ«ã‚’ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°
+	//ƒn[ƒtƒxƒNƒgƒ‹‚ðƒTƒ“ƒvƒŠƒ“ƒO
 	const float theta_h = atan( alpha * sqrt( xi1 / ( 1.f - xi1 ) ) );
 	const float cosph = cos( two_pi * xi2 );
 	const float sinph = sin( two_pi * xi2 );
@@ -171,7 +218,7 @@ __device__ inline float3 sample_ggx( const float3 n, const float3 wo, const floa
 	const float cos2 = costh * costh;
 	const float sin2 = max( 0.f, 1.f - cos2 );
 	const float pdf = costh / ( pi * alpha * alpha * ( cos2 + sin2 / ( alpha * alpha ) ) * ( cos2 + sin2 / ( alpha * alpha ) ) );
-	//ç¢ºçŽ‡å¯†åº¦
+	//Šm—¦–§“x
 	pdf_w = pdf / ( 4.0 * dot( h, lwo ) );
 
 	return lwi.x * t + lwi.y * b + lwi.z * n;
@@ -216,6 +263,7 @@ __device__ inline float3 eval_ggx( const float3 wi, const float3 wo, const float
 //
 __global__ void render( float *pixels, scene **scene, curandState *rand_state, const int width, const int height, const float3 eye, const int ns )
 {
+	//ƒOƒŠƒbƒh‘S‘Ì‚ÌƒXƒŒƒbƒh”Ô†‚ÌŒvŽZ
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
 	if( ( x >= width ) && ( y >= height ) ) return;
@@ -223,12 +271,18 @@ __global__ void render( float *pixels, scene **scene, curandState *rand_state, c
 	float3 L;
 	float pdf_w;
 	curandState rng = rand_state[ y * width + x ];
+
+	//1‰æ‘f•ª‚Ì‘å‚«‚³‚ðŒvŽZ
 	const float m_p = 2.f * tan( 40.f / 2.f * 3.14159265f / 180.f ) / float( height );
 	L = make_float3( 0.f, 0.f, 0.f );
 	intersection isect;
 	ray r;
 	float3 d;
+
+	//ƒTƒ“ƒvƒ‹‚ðŒvŽZ‚·‚é
 	for( int i = 0; i < ns; ++i ) {
+
+		//1‰æ‘f“à‚ÅAƒTƒ“ƒvƒ‹‚²‚Æ‚ÉŽn“_‚ð­‚µ‚¸‚ç‚µ‚ÄAƒŒƒC‚ð”ò‚Î‚·
 		d = { m_p * ( x - width / 2.f + curand_uniform( &rng ) ), m_p * ( y - height / 2.f + curand_uniform( &rng ) ), 1.f };
 		r = { eye, normalize( d ) };
 		float3 tp = make_float3( 1.f, 1.f, 1.f );
@@ -236,18 +290,29 @@ __global__ void render( float *pixels, scene **scene, curandState *rand_state, c
 		if( ( *scene )->intersect( r, isect ) ) {
 			//
 			if( is_emissive( isect ) ) {
+				//‚à‚µAÕ“Ë‚µ‚½‚Ì‚ªƒ‰ƒCƒg‚Ìê‡
+				//•úŽË‹P“x‚ð‘«‚µ‡‚í‚¹‚é
 				L.x += isect.m_c.x;
 				L.y += isect.m_c.y;
 				L.z += isect.m_c.z;
 			} else {
+				//[“x‚ð10‰ñ‚É§ŒÀ
 				for( int j = 0; j < 10; ++j ) {
 
-					//d = sample( isect.m_n, curand_uniform( &rng ), curand_uniform( &rng ), pdf_w );
-					//tp *= make_float3( isect.m_c.x * inv_pi, isect.m_c.y * inv_pi, isect.m_c.z * inv_pi ) * dot( d, isect.m_n ) / pdf_w;
+					//isect.m_n:–@ü
+					d = sample( isect.m_n, curand_uniform( &rng ), curand_uniform( &rng ), pdf_w );
+					tp *= make_float3( isect.m_c.x * inv_pi, isect.m_c.y * inv_pi, isect.m_c.z * inv_pi ) * dot( d, isect.m_n ) / pdf_w;
 
 					float3 wo = - 1.f * d;
-					d = sample_ggx( isect.m_n, wo, isect.m_c.w, curand_uniform( &rng ), curand_uniform( &rng ), pdf_w );
-					tp *= eval_ggx( d, wo, isect.m_n, { isect.m_c.x, isect.m_c.y, isect.m_c.z }, isect.m_c.w ) * dot( d, isect.m_n ) / pdf_w;
+
+					//Œõ‚Ì”½ŽË•ª•z‚ðŒvŽZ
+					//d = sample_ggx( isect.m_n, wo, isect.m_c.w, curand_uniform( &rng ), curand_uniform( &rng ), pdf_w );
+					
+					/*eval_ggx ŠÖ”‚É‚æ‚Á‚ÄŒvŽZ‚³‚ê‚é”½ŽË—¦‚ÆA
+					dotid, isect.m_nj‚ÅŒvŽZ‚³‚ê‚é—]Œ·€‚ÌÏ‚ðA
+					Šm—¦–§“x pdf_w ‚ÅŠ„‚Á‚½’l‚ðA•Ï” tp ‚ÉæŽZ‚µ‚Ü‚·B
+					*/
+					//tp *= eval_ggx( d, wo, isect.m_n, { isect.m_c.x, isect.m_c.y, isect.m_c.z }, isect.m_c.w ) * dot( d, isect.m_n ) / pdf_w;
 
 					r = { isect.m_p, d };
 					bool hit = ( *scene )->intersect( r, isect );
@@ -295,13 +360,13 @@ int main( int argc, char** argv )
 	//
 	const float3 eye = { 0.f, 3.f, - 5.f };
 
-	//
+	//GPU‚ÆCPU‚©‚çƒAƒNƒZƒX‚Å‚«‚éUnifiedMemory‚ðì¬‚·‚é
 	checkCudaErrors( cudaMallocManaged( ( void ** ) &device_buffer, sizeof( float ) * 3 * width * height ) );
 
-	//
+	//—”¶¬—p‚Ì•Ï”‚ÌUnifiedMemory‚ðì¬‚·‚é
 	checkCudaErrors( cudaMalloc( ( void** ) &device_rand_state, sizeof( curandState ) * width * height ) );
 
-	//ã‚·ãƒ¼ãƒ³ã®ä½œæˆ
+	//ƒV[ƒ“‚Ìì¬
 	{
 		checkCudaErrors( cudaMalloc( ( void ** ) &device_spheres, n_object * sizeof( sphere * ) ) );
 		checkCudaErrors( cudaMalloc( ( void ** ) &device_scene  , 1 * sizeof( scene *  ) ) );

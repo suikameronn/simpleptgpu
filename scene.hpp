@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef _SCENE_HPP_
-#define _SCENE_HPP_
-
 #include<cuda.h>
-#include<helper_cuda.h>
-#include<helper_math.h>
+#include<C:/Users/sukai/source/repos/cuda-samples/Common/helper_cuda.h>
+#include<C:/Users/sukai/source/repos/cuda-samples/Common/helper_math.h>
 
 #include"sphere.hpp"
 #include"ray.hpp"
@@ -49,7 +46,3 @@ private:
 	sphere		**m_object;
 	int 		m_n;
 };
-
-
-
-#endif

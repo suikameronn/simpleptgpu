@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef _RAY_HPP_
-#define _RAY_HPP_
-
-#include<cuda.h>
-#include<helper_cuda.h>
-#include<helper_math.h>
+#include "cuda.h"
+#include "C:/Users/sukai/source/repos/cuda-samples/Common/helper_cuda.h"
+#include "C:/Users/sukai/source/repos/cuda-samples/Common/helper_math.h"
 
 //
 class ray
@@ -24,7 +21,3 @@ private:
 	float3	m_o;
 	float3	m_d;
 };
-
-
-
-#endif

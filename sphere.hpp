@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef _SPHERE_HPP_
-#define _SPHERE_HPP_
-
 #include<cuda.h>
-#include<helper_cuda.h>
-#include<helper_math.h>
+#include"C:/Users/sukai/source/repos/cuda-samples/Common/helper_cuda.h"
+#include"C:/Users/sukai/source/repos/cuda-samples/Common/helper_math.h"
 
 #include"ray.hpp"
 #include"intersection.hpp"
@@ -80,5 +77,3 @@ __device__ float sphere::intersect( const ray &r ) const
 	}
 	return t;
 }
-
-#endif
