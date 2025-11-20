@@ -332,6 +332,13 @@
 # define HOST_COMPILER_VERSION_MINOR DEC(__ORANGEC_MINOR__)
 # define HOST_COMPILER_VERSION_PATCH DEC(__ORANGEC_PATCHLEVEL__)
 
+#elif defined(__RENESAS__)
+# define HOST_COMPILER_ID "Renesas"
+/* __RENESAS_VERSION__ = 0xVVRRPP00 */
+# define HOST_COMPILER_VERSION_MAJOR HEX(__RENESAS_VERSION__ >> 24 & 0xFF)
+# define HOST_COMPILER_VERSION_MINOR HEX(__RENESAS_VERSION__ >> 16 & 0xFF)
+# define HOST_COMPILER_VERSION_PATCH HEX(__RENESAS_VERSION__ >> 8  & 0xFF)
+
 #elif defined(__SCO_VERSION__)
 # define HOST_COMPILER_ID "SCO"
 
@@ -464,6 +471,14 @@
 #  define HOST_COMPILER_VERSION_PATCH DEC(__SUBVERSION__)
 #  define HOST_COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
 # endif
+
+#elif defined(__DCC__) && defined(_DIAB_TOOL)
+# define HOST_COMPILER_ID "Diab"
+  # define HOST_COMPILER_VERSION_MAJOR DEC(__VERSION_MAJOR_NUMBER__)
+  # define HOST_COMPILER_VERSION_MINOR DEC(__VERSION_MINOR_NUMBER__)
+  # define HOST_COMPILER_VERSION_PATCH DEC(__VERSION_ARCH_FEATURE_NUMBER__)
+  # define HOST_COMPILER_VERSION_TWEAK DEC(__VERSION_BUG_FIX_NUMBER__)
+
 
 
 #endif
@@ -750,6 +765,20 @@ char const* info_simulate = "INFO" ":" "simulate[" SIMULATE_ID "]";
 
 # elif defined(__CPCP__)
 #  define ARCHITECTURE_ID "PCP"
+
+# else
+#  define ARCHITECTURE_ID ""
+# endif
+
+#elif defined(__RENESAS__)
+# if defined(__CCRX__)
+#  define ARCHITECTURE_ID "RX"
+
+# elif defined(__CCRL__)
+#  define ARCHITECTURE_ID "RL78"
+
+# elif defined(__CCRH__)
+#  define ARCHITECTURE_ID "RH850"
 
 # else
 #  define ARCHITECTURE_ID ""

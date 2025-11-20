@@ -23,6 +23,7 @@ set(CMAKE_CUDA_PLATFORM_ID "Windows")
 set(CMAKE_CUDA_SIMULATE_ID "MSVC")
 set(CMAKE_CUDA_COMPILER_FRONTEND_VARIANT "")
 set(CMAKE_CUDA_SIMULATE_VERSION "19.38")
+set(CMAKE_CUDA_COMPILER_ARCHITECTURE_ID "x64")
 set(MSVC_CUDA_ARCHITECTURE_ID x64)
 
 
@@ -60,8 +61,8 @@ set(CMAKE_CUDA_COMPILER_TOOLKIT_LIBRARY_ROOT "")
 set(CMAKE_CUDA_COMPILER_TOOLKIT_VERSION "13.0.88")
 set(CMAKE_CUDA_COMPILER_LIBRARY_ROOT "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.0")
 
-set(CMAKE_CUDA_ARCHITECTURES_ALL "50-real;52-real;53-real;60-real;61-real;62-real;70-real;72-real;75-real;80-real;86-real;87-real;89-real;90-real;100-real;101-real;120-real;103-real;121")
-set(CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR "50-real;60-real;70-real;80-real;90-real;100-real;120")
+set(CMAKE_CUDA_ARCHITECTURES_ALL "75-real;80-real;86-real;87-real;88-real;89-real;90-real;100-real;103-real;110-real;120-real;121")
+set(CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR "75-real;80-real;90-real;100-real;110-real;120")
 set(CMAKE_CUDA_ARCHITECTURES_NATIVE "75-real")
 
 set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.0/include;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.0/include/cccl")
