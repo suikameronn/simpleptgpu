@@ -1,4 +1,0 @@
-C:/Users/sukai/source/repos/simpleptgpu/build/CMakeFiles/simpleptgpu.dir
-C:/Users/sukai/source/repos/simpleptgpu/build/CMakeFiles/simplertaa.dir
-C:/Users/sukai/source/repos/simpleptgpu/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/sukai/source/repos/simpleptgpu/build/CMakeFiles/ZERO_CHECK.dir
